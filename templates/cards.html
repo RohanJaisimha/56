@@ -1,0 +1,212 @@
+<html>
+	<head>
+		<title>
+		    56
+		</title>
+        <style>
+            td.non_empty_td {
+                border: 2px solid black;
+                text-align: center;
+            }
+            td.card_td {
+                font-size: 60pt;
+            }
+            td.card_td:hover {
+                cursor: pointer;
+            }
+        </style>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <meta charset="utf-8">
+	</head>
+	<body>
+        <div id="name">
+        </div>
+        <div style="font-size: 60pt">
+		    {% autoescape false %}
+                {% for card in hand %}
+                    {{ card }}
+                {% endfor %}
+            {% endautoescape %}
+        </div>
+        <div id="cards_played">
+            <table>
+                <tr>
+                    <td>
+                    </td>
+                    <td class="non_empty_td">
+                        {{ players[0] }}
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                    </td>
+                    <td id="P1_Card" class="non_empty_td card_td">
+		                {% autoescape false %}
+                            {{ cards_played[0] }}
+                        {% endautoescape %}
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="non_empty_td">
+                        {{ players[3] }}
+                    </td>
+                    <td>
+                    </td>
+                    <td class="non_empty_td">
+                        {{ players[1] }}
+                    </td>
+                </tr>
+                <tr>
+                    <td id="P4_Card" class="non_empty_td card_td">
+		                {% autoescape false %}
+                            {{ cards_played[3] }}
+                        {% endautoescape %}
+                    </td>
+                    <td>
+                    </td>
+                    <td id="P2_Card" class="non_empty_td card_td">
+		                {% autoescape false %}
+                            {{ cards_played[1] }}
+                        {% endautoescape %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                    </td>
+                    <td class="non_empty_td">
+                        {{ players[2] }}
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                    </td>
+                    <td id="P3_Card" class="non_empty_td card_td">
+		                {% autoescape false %}
+                            {{ cards_played[2] }}
+                        {% endautoescape %}
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <input type="button" value="Clear" onclick="clear_table()">
+        <input type="button" value="{{ players[0] }} & {{ players[2] }} won" onclick="update_score('team_1')">
+        <input type="button" value="{{ players[1] }} & {{ players[3] }} won" onclick="update_score('team_2')">
+        <div id="score_table">
+            <table border="1">
+                    <thead>
+                        <tr>
+                            <td>
+                                {{ players[0] }} & {{ players[2] }}
+                            </td>
+                            <td>
+                                {{ players[1] }} & {{ players[3] }}
+                            </td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id='team_1_score'>
+                                {{ scores[0] }}
+                            </td>
+                            <td id='team_2_score'>
+                                {{ scores[1] }}
+                            </td>
+                        </tr>
+                    </tbody>
+            </table>
+        </div>
+	</body>
+    <script>
+        function playCard(elem) {
+            let request = $.ajax({
+				url: "/playCard",
+				type: "post",
+				data: {"card": elem.outerHTML, "user": window.location.search.substring(window.location.search.indexOf("=") + 1)}
+			});
+			request.done(function(response, textStatus, XHR) {
+				let cards_played = JSON.parse(response);
+                let players = {{ players | safe }};
+                for(let i = 0; i < players.length; i += 1) {
+                    document.getElementById("P" + (i + 1) + "_Card").innerHTML = cards_played[i]
+                }
+			});
+			request.fail(function(jqXHR, textStatus, errorThrown) {
+				console.error(errorThrown);
+			});
+        }
+        function refresh() {
+            let request = $.ajax({
+				url: "/refresh",
+				type: "post",
+				data: {}
+			});
+			request.done(function(response, textStatus, XHR) {
+                response = JSON.parse(response);
+                console.log(response);
+				let cards_played = response.slice(0, 4);
+                let scores = response.slice(4);
+                console.log(scores);
+                for(let i = 0; i < cards_played.length; i += 1) {
+                    document.getElementById("P" + (i + 1) + "_Card").innerHTML = cards_played[i];
+                }
+                for(let i = 0; i < 2; i += 1) {
+                    document.getElementById("team_" + (i + 1) + "_score").innerText = scores[i];
+                }
+			});
+			request.fail(function(jqXHR, textStatus, errorThrown) {
+				console.error(errorThrown);
+			});
+        }
+        function clear_table() {
+            for(let i = 0; i < {{ players | safe }}.length; i += 1) {
+                document.getElementById("P" + (i + 1) + "_Card").innerHTML = "&nbsp;&nbsp;";
+            }
+            let request = $.ajax({
+				url: "/clear_table",
+				type: "post",
+				data: {}
+			});
+			request.done(function(response, textStatus, XHR) {
+			});
+			request.fail(function(jqXHR, textStatus, errorThrown) {
+				console.error(errorThrown);
+			});
+        }
+        function update_score(winning_team) {
+            let num_players = {{ players | safe }}.length;
+			let cards_played = [];
+            for(let i = 1; i <= num_players; i += 1) {
+                cards_played[i - 1] = document.getElementById("P" + i + "_Card").innerText.codePointAt(0).toString(16).charAt(4);
+            }
+            let score = 0;
+            for(let i = 0; i < cards_played.length; i += 1) {
+                if(cards_played[i] == "9")                                  score += 2;
+                else if(cards_played[i] == "b")                             score += 3;
+                else if(cards_played[i] == "a" || cards_played[i] == "1")   score += 1;
+            }
+            let elem = document.getElementById(winning_team + "_score");
+            elem.innerText = parseInt(elem.innerText) + score + ""; 
+            
+            let request = $.ajax({
+				url: "/update_scores",
+				type: "post",
+				data: {"scores": JSON.stringify([document.getElementById("team_1_score").innerText, document.getElementById("team_2_score").innerText])}
+			});
+			request.done(function(response, textStatus, XHR) {
+			});
+			request.fail(function(jqXHR, textStatus, errorThrown) {
+				console.error(errorThrown);
+			});
+        }
+        var _refresh = setInterval(refresh, 5000);
+        document.getElementById("name").innerHTML = "<h1>" + window.location.search.substring(window.location.search.indexOf("=") + 1) + "</h1>";
+    </script>
+</html>
