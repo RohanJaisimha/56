@@ -3,7 +3,7 @@ from flask import Flask, render_template, request
 import json
 import random
 
-app = Flask(__name__)
+application = Flask(__name__)
 _deck = None
 cards_played = ["&nbsp;" * 2] * 4
 players = ["Rohan", "Dad", "Rahul", "Mom"]
@@ -77,7 +77,7 @@ class Deck:
         return str(self.hands)
 
 
-@app.route("/")
+@application.route("/")
 def home():
     global _deck
     global cards_played
@@ -103,7 +103,7 @@ def home():
         )
 
 
-@app.route("/playCard", methods=["POST"])
+@application.route("/playCard", methods=["POST"])
 def playCard():
     global cards_played
     global players
@@ -121,7 +121,7 @@ def playCard():
     return json.dumps(cards_played)
 
 
-@app.route("/refresh", methods=["POST"])
+@application.route("/refresh", methods=["POST"])
 def refresh():
     global cards_played
     global scores
@@ -129,7 +129,7 @@ def refresh():
     return json.dumps(cards_played + scores)
 
 
-@app.route("/clear_table", methods=["POST"])
+@application.route("/clear_table", methods=["POST"])
 def clear_table():
     global cards_played
     global _deck
@@ -146,7 +146,7 @@ def clear_table():
     return ""
 
 
-@app.route("/update_scores", methods=["POST"])
+@application.route("/update_scores", methods=["POST"])
 def update_scores():
     global scores
 
@@ -155,7 +155,7 @@ def update_scores():
 
 
 def main():
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    application.run(host="0.0.0.0", port=5000, debug=True)
 
 
 if __name__ == "__main__":
