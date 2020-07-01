@@ -87,13 +87,13 @@ def home():
     if not _deck:
         _deck = Deck(4)
         _deck.shuffle()
+        for i in range(random.randrange(2, 6)):
+            _deck.cut()
+        _deck.deal(players)
 
     if not request.args.get("name"):
         return render_template("form.html")
     else:
-        for i in range(random.randrange(2, 6)):
-            _deck.cut()
-        _deck.deal(players)
         return render_template(
             "cards.html",
             hand=_deck.hands[request.args["name"]],
@@ -142,6 +142,9 @@ def clear_table():
         _deck = Deck(cards=new_deck)
         new_deck = []
         rounds = 0
+        for i in range(random.randrange(2, 6)):
+            _deck.cut()
+        _deck.deal(players)
     cards_played = ["&nbsp;" * 2] * 4
     return ""
 
