@@ -132,10 +132,12 @@
     <script>
         function playCard(elem) {
             elem.style.pointerEvents = "none";
+	    let user_name = window.location.search.substring(window.location.search.indexOf("=") + 1);
+	    document.getElementById("P" + ({{players|safe}}.indexOf(user_name) + 1) + "_Card").innerHTML = elem.outerHTML;
             let request = $.ajax({
 				url: "/playCard",
 				type: "post",
-				data: {"card": elem.outerHTML, "user": window.location.search.substring(window.location.search.indexOf("=") + 1), "rank": elem.innerText.codePointAt(0).toString(16).charAt(4), "suit": elem.innerText.codePointAt(0).toString(16).charAt(3)}
+				data: {"card": elem.outerHTML, "user": user_name, "rank": elem.innerText.codePointAt(0).toString(16).charAt(4), "suit": elem.innerText.codePointAt(0).toString(16).charAt(3)}
 			});
 			request.done(function(response, textStatus, XHR) {
 				let cards_played = JSON.parse(response);
