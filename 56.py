@@ -1,12 +1,15 @@
 import random
 from flask import Flask, render_template, request
 import json
+import random
 
 app = Flask(__name__)
 _deck = None
 cards_played = ["&nbsp;" * 2] * 4
-players = ["Rohan", "Rahul", "Dad", "Mom"]
+players = ["Rohan", "Dad", "Rahul", "Mom"]
 scores = [0, 0]
+new_deck = []
+rounds = 0
 
 
 class Card:
@@ -14,14 +17,14 @@ class Card:
         self.rank = rank
         self.suit = suit
         self.sorting_rubric = [
-            ["D", "B", "A", "C"].index(self.suit),
-            ["B", "9", "1", "A"].index(self.rank),
+            ["d", "b", "a", "c"].index(self.suit),
+            ["b", "9", "1", "a", "c", "d"].index(self.rank),
         ]
 
     def __str__(self):
         return (
             "<span style='color: "
-            + ("red" if self.suit in ["B", "C"] else "black")
+            + ("red" if self.suit in ["b", "c"] else "black")
             + "' onclick='playCard(this); this.outerHTML= \"\";'>&#x1F0"
             + self.suit
             + self.rank
@@ -45,13 +48,16 @@ class Card:
 
 
 class Deck:
-    def __init__(self, num_players=4):
-        self.deck = [
-            Card(rank, suit)
-            for rank in ["1", "9", "A", "B"]
-            for suit in ["A", "B", "C", "D"]
-            for i in range(2)
-        ]
+    def __init__(self, num_players=4, cards=None):
+        if not cards:
+            self.deck = [
+                Card(rank, suit)
+                for rank in ["1", "9", "a", "b", "c", "d"][:num_players]
+                for suit in ["a", "b", "c", "d"]
+                for i in range(2)
+            ]
+        else:
+            self.deck = cards
         self.hands = None
 
     def shuffle(self):
@@ -63,8 +69,12 @@ class Deck:
             for i in range(0, len(self.deck), 8)
         }
 
+    def cut(self):
+        randnum = random.randrange(len(self.deck) // 4, 3 * len(self.deck) // 4)
+        self.deck = self.deck[randnum:] + self.deck[:randnum]
+
     def __str__(self):
-        return repr(self)
+        return str(self.hands)
 
 
 @app.route("/")
@@ -77,24 +87,37 @@ def home():
     if not _deck:
         _deck = Deck(4)
         _deck.shuffle()
-        _deck.deal(players)
 
     if not request.args.get("name"):
         return render_template("form.html")
     else:
+        for i in range(random.randrange(2, 6)):
+            _deck.cut()
+        _deck.deal(players)
         return render_template(
             "cards.html",
             hand=_deck.hands[request.args["name"]],
             cards_played=cards_played,
             players=players,
-            scores=scores
+            scores=scores,
         )
 
 
 @app.route("/playCard", methods=["POST"])
 def playCard():
     global cards_played
+    global players
+    global _deck
+    global new_deck
+
     cards_played[players.index(request.form["user"])] = request.form["card"]
+    idx = 9
+    for i, card in enumerate(_deck.hands[request.form["user"]]):
+        if card.rank == request.form["rank"] and card.suit == request.form["suit"]:
+            idx = i
+            break
+    _deck.hands[request.form["user"]].pop(idx)
+    new_deck.append(Card(request.form["rank"], request.form["suit"]))
     return json.dumps(cards_played)
 
 
@@ -102,12 +125,23 @@ def playCard():
 def refresh():
     global cards_played
     global scores
+
     return json.dumps(cards_played + scores)
 
 
 @app.route("/clear_table", methods=["POST"])
 def clear_table():
     global cards_played
+    global _deck
+    global new_deck
+    global rounds
+    global players
+
+    rounds += 1
+    if rounds == 8:
+        _deck = Deck(cards=new_deck)
+        new_deck = []
+        rounds = 0
     cards_played = ["&nbsp;" * 2] * 4
     return ""
 
@@ -115,6 +149,7 @@ def clear_table():
 @app.route("/update_scores", methods=["POST"])
 def update_scores():
     global scores
+
     scores = json.loads(request.form["scores"])
     return ""
 

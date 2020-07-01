@@ -11,8 +11,13 @@
             td.card_td {
                 font-size: 60pt;
             }
-            td.card_td:hover {
+            span:hover {
                 cursor: pointer;
+            }
+            #score_table {
+                position:absolute;
+                right: 0%; 
+                top: 0%;
             }
         </style>
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
@@ -126,16 +131,17 @@
 	</body>
     <script>
         function playCard(elem) {
+            elem.style.pointerEvents = "none";
             let request = $.ajax({
 				url: "/playCard",
 				type: "post",
-				data: {"card": elem.outerHTML, "user": window.location.search.substring(window.location.search.indexOf("=") + 1)}
+				data: {"card": elem.outerHTML, "user": window.location.search.substring(window.location.search.indexOf("=") + 1), "rank": elem.innerText.codePointAt(0).toString(16).charAt(4), "suit": elem.innerText.codePointAt(0).toString(16).charAt(3)}
 			});
 			request.done(function(response, textStatus, XHR) {
 				let cards_played = JSON.parse(response);
                 let players = {{ players | safe }};
                 for(let i = 0; i < players.length; i += 1) {
-                    document.getElementById("P" + (i + 1) + "_Card").innerHTML = cards_played[i]
+                    document.getElementById("P" + (i + 1) + "_Card").innerHTML = cards_played[i];
                 }
 			});
 			request.fail(function(jqXHR, textStatus, errorThrown) {
