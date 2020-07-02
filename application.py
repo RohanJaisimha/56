@@ -2,11 +2,13 @@ import random
 from flask import Flask, render_template, request
 import json
 import random
+import numpy as np
 
 application = Flask(__name__)
 _deck = None
 cards_played = ["&nbsp;" * 2] * 4
-players = ["Rohan", "Rahul", "Dad", "Mom"]
+teams = [["Rohan", "Dad"], ["Rahul", "Mom"]]
+players = list(np.array([*zip(*teams)]).flatten())
 scores = [0, 0]
 new_deck = []
 rounds = 0
@@ -70,7 +72,7 @@ class Deck:
         }
 
     def cut(self):
-        randnum = random.randrange(len(self.deck) // 4, 3 * len(self.deck) // 4)
+        randnum = random.randrange(0, len(self.deck))
         self.deck = self.deck[randnum:] + self.deck[:randnum]
 
     def __str__(self):
