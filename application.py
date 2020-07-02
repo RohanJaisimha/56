@@ -6,7 +6,7 @@ import random
 application = Flask(__name__)
 _deck = None
 cards_played = ["&nbsp;" * 2] * 4
-players = ["Rohan", "Dad", "Rahul", "Mom"]
+players = ["Rohan", "Rahul", "Dad", "Mom"]
 scores = [0, 0]
 new_deck = []
 rounds = 0
