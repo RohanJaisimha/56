@@ -143,6 +143,7 @@ def clear_table():
     if rounds == 8:
         _deck = Deck(cards=new_deck)
         new_deck = []
+        scores = [0, 0]
         rounds = 0
         for i in range(random.randrange(2, 6)):
             _deck.cut()
