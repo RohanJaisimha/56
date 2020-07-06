@@ -8,30 +8,26 @@ application = Flask(__name__)
 _deck = None
 cards_played = ["&nbsp;" * 2] * 4
 teams = [["Rohan", "Dad"], ["Rahul", "Mom"]]
-players = list(np.array([*zip(*teams)]).flatten())
+players = list(np.array(list(zip(*teams))).flatten())
 scores = [0, 0]
 new_deck = []
-rounds = 0
+num_rounds = 0
 
 
 class Card:
     def __init__(self, rank, suit):
+        # suit: d - clubs, b - hearts, a - spades, c - diamonds
+        # rank: b - jack, 9 - 9, 1 - Ace, a - 10, c - King, d - Queen
         self.rank = rank
         self.suit = suit
         self.sorting_rubric = [
             ["d", "b", "a", "c"].index(self.suit),
             ["b", "9", "1", "a", "c", "d"].index(self.rank),
         ]
+        self.color = "red" if suit in ["b", "c"] else "black"
 
     def __str__(self):
-        return (
-            "<span style='color: "
-            + ("red" if self.suit in ["b", "c"] else "black")
-            + "' onclick='playCard(this); this.outerHTML= \"\";'>&#x1F0"
-            + self.suit
-            + self.rank
-            + ";</span>"
-        )
+        return "&#x1F0" + self.suit + self.rank + ";"
 
     def __repr__(self):
         return str(self)
@@ -70,6 +66,10 @@ class Deck:
             players[i // 8]: sorted(self.deck[i : i + 8])
             for i in range(0, len(self.deck), 8)
         }
+
+    def riffle_shuffle(self):
+        halves = [self.deck[: len(self.deck) // 2], self.deck[len(self.deck) // 2 :]]
+        self.deck = list(np.array(list(zip(*halves))).flatten())
 
     def cut(self):
         randnum = random.randrange(0, len(self.deck))
@@ -136,15 +136,16 @@ def clear_table():
     global cards_played
     global _deck
     global new_deck
-    global rounds
+    global num_rounds
     global players
+    global scores
 
-    rounds += 1
-    if rounds == 8:
+    num_rounds += 1
+    if num_rounds == 8:
         _deck = Deck(cards=new_deck)
         new_deck = []
         scores = [0, 0]
-        rounds = 0
+        num_rounds = 0
         for i in range(random.randrange(2, 6)):
             _deck.cut()
         _deck.deal(players)
