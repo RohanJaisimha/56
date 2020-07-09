@@ -33,7 +33,7 @@
 		    {% autoescape false %}
                 {% for card in hand %}
                     <span style="color: {{card.color}};" onclick="playCard(this); this.outerHTML= '';">
-                        {{"&#x1F0" ~ card.suit ~ card.rank }};
+                        {{"&#x1F0" ~ card.suit ~ card.rank ~ ";"}}
                     </span>
                 {% endfor %}
             {% endautoescape %}
@@ -137,16 +137,15 @@
     <script>
         function playCard(elem) {
             elem.style.pointerEvents = "none";
-	        let user_name = window.location.search.substring(window.location.search.indexOf("=") + 1);
-	        document.getElementById("P" + ({{players|safe}}.indexOf(user_name) + 1) + "_Card").innerHTML = elem.outerHTML;
+	        document.getElementById("P" + (players.indexOf(user_name) + 1) + "_Card").innerHTML = elem.outerHTML;
+            let card_in_unicode = elem.innerText.codePointAt(0).toString(16);
             let request = $.ajax({
 				url: "/playCard",
 				type: "post",
-				data: {"card": elem.outerHTML, "user": user_name, "rank": elem.innerText.codePointAt(0).toString(16).charAt(4), "suit": elem.innerText.codePointAt(0).toString(16).charAt(3)}
+				data: {"card": elem.outerHTML, "user": user_name, "rank": card_in_unicode.charAt(4), "suit": card_in_unicode.charAt(3)}
 			});
 			request.done(function(response, textStatus, XHR) {
 				let cards_played = JSON.parse(response);
-                let players = {{ players | safe }};
                 for(let i = 0; i < players.length; i += 1) {
                     document.getElementById("P" + (i + 1) + "_Card").innerHTML = cards_played[i];
                 }
@@ -177,7 +176,7 @@
 			});
         }
         function clear_table() {
-            for(let i = 0; i < {{ players | safe }}.length; i += 1) {
+            for(let i = 0; i < players.length; i += 1) {
                 document.getElementById("P" + (i + 1) + "_Card").innerHTML = "&nbsp;&nbsp;";
             }
             let request = $.ajax({
@@ -192,7 +191,7 @@
 			});
         }
         function update_score(winning_team) {
-            let num_players = {{ players | safe }}.length;
+            let num_players = players.length;
 			let cards_played = [];
             for(let i = 1; i <= num_players; i += 1) {
                 cards_played[i - 1] = document.getElementById("P" + i + "_Card").innerText.codePointAt(0).toString(16).charAt(4);
@@ -218,6 +217,8 @@
 			});
         }
         var _refresh = setInterval(refresh, 5000);
-        document.getElementById("name").innerHTML = "<h1>" + window.location.search.substring(window.location.search.indexOf("=") + 1) + "</h1>";
+        var user_name = window.location.search.substring(window.location.search.indexOf("=") + 1);
+        var players = {{ players | safe }};
+        document.getElementById("name").innerHTML = "<h1>" + user_name + "</h1>";
     </script>
 </html>

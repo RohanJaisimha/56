@@ -16,8 +16,8 @@ num_rounds = 0
 
 class Card:
     def __init__(self, rank, suit):
-        # suit: d - clubs, b - hearts, a - spades, c - diamonds
-        # rank: b - jack, 9 - 9, 1 - Ace, a - 10, c - King, d - Queen
+        # suit: d - Clubs, b - Hearts, a - Spades, c - Diamonds
+        # rank: b - Jack, 9 - 9, 1 - Ace, a - 10, c - King, d - Queen
         self.rank = rank
         self.suit = suit
         self.sorting_rubric = [
@@ -48,9 +48,11 @@ class Card:
 class Deck:
     def __init__(self, num_players=4, cards=None):
         if not cards:
+            # suit: d - Clubs, b - Hearts, a - Spades, c - Diamonds
+            # rank: b - Jack, 9 - 9, 1 - Ace, a - 10, c - King, d - Queen
             self.deck = [
                 Card(rank, suit)
-                for rank in ["1", "9", "a", "b", "c", "d"][:num_players]
+                for rank in ["1", "9", "a", "b", "c", "d"][:num_players]       
                 for suit in ["a", "b", "c", "d"]
                 for i in range(2)
             ]
