@@ -1,5 +1,5 @@
 # 56
-56 is a card game, hosted using AWS at [56.roartec.com](56.roartec.com)
+56 is a card game, hosted using AWS at [56.roartec.com](http://56.roartec.com)
 
 # Get started
 * Clone the repository / download the files. Open your terminal and navigate to this directory
