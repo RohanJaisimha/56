@@ -1,15 +1,16 @@
 <html>
-	<head>
-	    <title>
-	        56
-	    </title>
+    <head>
+        <title>
+            56
+        </title>
         <style>
             td.non_empty_td {
                 border: 2px solid black;
                 text-align: center;
+                padding: 0px;
             }
-            td.card_td {
-                font-size: 60pt;
+            .card {
+                font-size: 80pt;
             }
             span:hover {
                 cursor: pointer;
@@ -19,20 +20,17 @@
                 right: 0%; 
                 top: 0%;
             }
-            #users_hands {
-                font-size: 60pt;
-            }
         </style>
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
         <meta charset="utf-8">
-	</head>
-	<body>
+    </head>
+    <body>
         <div id="name">
         </div>
         <div id="users_hands">
-	    {% autoescape false %}
+            {% autoescape false %}
                 {% for card in hand %}
-                    <span style="color: {{card.color}};" onclick="playCard(this); this.outerHTML= '';">
+                    <span class="card" style="color: {{card.color}};" onclick="playCard(this); this.outerHTML= '';">
                         {{"&#x1F0" ~ card.suit ~ card.rank ~ ";"}}
                     </span>
                 {% endfor %}
@@ -52,8 +50,8 @@
                 <tr>
                     <td>
                     </td>
-                    <td id="P1_Card" class="non_empty_td card_td">
-	                {% autoescape false %}
+                    <td id="P1_Card" class="non_empty_td card">
+                        {% autoescape false %}
                             {{ cards_played[0] }}
                         {% endautoescape %}
                     </td>
@@ -71,15 +69,15 @@
                     </td>
                 </tr>
                 <tr>
-                    <td id="P4_Card" class="non_empty_td card_td">
-	                {% autoescape false %}
+                    <td id="P4_Card" class="non_empty_td card">
+                        {% autoescape false %}
                             {{ cards_played[3] }}
                         {% endautoescape %}
                     </td>
                     <td>
                     </td>
-                    <td id="P2_Card" class="non_empty_td card_td">
-	                {% autoescape false %}
+                    <td id="P2_Card" class="non_empty_td card">
+                        {% autoescape false %}
                             {{ cards_played[1] }}
                         {% endautoescape %}
                     </td>
@@ -96,8 +94,8 @@
                 <tr>
                     <td>
                     </td>
-                    <td id="P3_Card" class="non_empty_td card_td">
-	                {% autoescape false %}
+                    <td id="P3_Card" class="non_empty_td card">
+                        {% autoescape false %}
                             {{ cards_played[2] }}
                         {% endautoescape %}
                     </td>
@@ -133,94 +131,94 @@
                     </tbody>
             </table>
         </div>
-	</body>
+    </body>
     <script>
         function playCard(elem) {
-	    // turn off onclick for that card
+            // turn off onclick for that card
             elem.style.pointerEvents = "none";
-	    
-	    // setting the space that the players card goes to card that they clicked on	
-	    document.getElementById("P" + (players.indexOf(user_name) + 1) + "_Card").innerHTML = elem.outerHTML;
             
-	    // get the unicode code for the card
-	    let card_in_unicode = elem.innerText.codePointAt(0).toString(16);
+            // setting the space that the players card goes to card that they clicked on        
+            document.getElementById("P" + (players.indexOf(user_name) + 1) + "_Card").innerHTML = elem.outerHTML;
             
-	    // making an ajax request to the server with the card played	
-	    let request = $.ajax({
-		url: "/playCard",
-		type: "post",
-		data: {"card": elem.outerHTML, "user": user_name, "rank": card_in_unicode.charAt(4), "suit": card_in_unicode.charAt(3)}
-	    });
-	    request.done(function(response, textStatus, XHR) {
-		// response: the cards that have been played so far
-		// We go through this array and fill in the spaces
-		let cards_played = JSON.parse(response);
+            // get the unicode code for the card
+            let card_in_unicode = elem.innerText.codePointAt(0).toString(16);
+            
+            // making an ajax request to the server with the card played        
+            let request = $.ajax({
+                url: "/playCard",
+                type: "post",
+                data: {"card": elem.outerHTML, "user": user_name, "rank": card_in_unicode.charAt(4), "suit": card_in_unicode.charAt(3)}
+            });
+            request.done(function(response, textStatus, XHR) {
+                // response: the cards that have been played so far
+                // We go through this array and fill in the spaces
+                let cards_played = JSON.parse(response);
                 for(let i = 0; i < players.length; i += 1) {
                     document.getElementById("P" + (i + 1) + "_Card").innerHTML = cards_played[i];
                 }
-	    });
-	    request.fail(function(jqXHR, textStatus, errorThrown) {
-	        console.error(errorThrown);
-	    });
+            });
+            request.fail(function(jqXHR, textStatus, errorThrown) {
+                console.error(errorThrown);
+            });
         }
         function refresh() {
-	    // making an ajax request to the server asking for an update in the scores and the cards_played
-	    // done every 5 seconds
+            // making an ajax request to the server asking for an update in the scores and the cards_played
+            // done every 5 seconds
             let request = $.ajax({
-		url: "/refresh",
-		type: "post",
-		data: {}
-	    });
-	    request.done(function(response, textStatus, XHR) {
-		// response: an array of size 6, where the first four are the cards played
-		// and the last two are the scores for each team
+                url: "/refresh",
+                type: "post",
+                data: {}
+            });
+            request.done(function(response, textStatus, XHR) {
+                // response: an array of size 6, where the first four are the cards played
+                // and the last two are the scores for each team
                 response = JSON.parse(response);
-		let num_players = players.length;
-		let cards_played = response.slice(0, num_players);
+                let num_players = players.length;
+                let cards_played = response.slice(0, num_players);
                 let scores = response.slice(num_players);
                 
-		// updating each space with the cards played    
-		for(let i = 0; i < num_players; i += 1) {
+                // updating each space with the cards played    
+                for(let i = 0; i < num_players; i += 1) {
                     document.getElementById("P" + (i + 1) + "_Card").innerHTML = cards_played[i];
                 }
 
-		// updating scores
+                // updating scores
                 for(let i = 0; i < 2; i += 1) {
                     document.getElementById("team_" + (i + 1) + "_score").innerText = scores[i];
                 }
-	    });
-	    request.fail(function(jqXHR, textStatus, errorThrown) {
-	    	console.error(errorThrown);
-	    });
+            });
+            request.fail(function(jqXHR, textStatus, errorThrown) {
+                    console.error(errorThrown);
+            });
         }
         function clear_table() {
-	    // setting every card to two spaces
+            // setting every card to two spaces
             for(let i = 0; i < players.length; i += 1) {
                 document.getElementById("P" + (i + 1) + "_Card").innerHTML = "&nbsp;&nbsp;";
             }
-	
-	    // making an ajax request to the server
+        
+            // making an ajax request to the server
             let request = $.ajax({
-		url: "/clear_table",
-		type: "post",
-		data: {}
-	    });
-	    request.done(function(response, textStatus, XHR) {
-	    });
-	    request.fail(function(jqXHR, textStatus, errorThrown) {
-		console.error(errorThrown);
-	    });
+                url: "/clear_table",
+                type: "post",
+                data: {}
+            });
+            request.done(function(response, textStatus, XHR) {
+            });
+            request.fail(function(jqXHR, textStatus, errorThrown) {
+                console.error(errorThrown);
+            });
         }
         function update_score(winning_team) {
             let num_players = players.length;
-	    
-	    // getting the cards played	
-	    let cards_played = [];
+            
+            // getting the cards played        
+            let cards_played = [];
             for(let i = 1; i <= num_players; i += 1) {
                 cards_played[i - 1] = document.getElementById("P" + i + "_Card").innerText.codePointAt(0).toString(16).charAt(4);
             }
 
-	    // calculating the score from the cards played
+            // calculating the score from the cards played
             let score = 0;
             for(let i = 0; i < num_players; i += 1) {
                 if(cards_played[i] == "9")                                  score += 2;
@@ -230,27 +228,27 @@
             let elem = document.getElementById(winning_team + "_score");
             elem.innerText = parseInt(elem.innerText) + score + ""; 
             
-	    // making an ajax request to Flask with the updated scores
+            // making an ajax request to Flask with the updated scores
             let request = $.ajax({
-		url: "/update_scores",
-		type: "post",
-		data: {"scores": JSON.stringify([document.getElementById("team_1_score").innerText, document.getElementById("team_2_score").innerText])}
-	    });
-	    request.done(function(response, textStatus, XHR) {
-	    });
-	    request.fail(function(jqXHR, textStatus, errorThrown) {
-		console.error(errorThrown);
-	    });
+                url: "/update_scores",
+                type: "post",
+                data: {"scores": JSON.stringify([document.getElementById("team_1_score").innerText, document.getElementById("team_2_score").innerText])}
+            });
+            request.done(function(response, textStatus, XHR) {
+            });
+            request.fail(function(jqXHR, textStatus, errorThrown) {
+                console.error(errorThrown);
+            });
         }
 
-	// set up an auto_refresher every 5 seconds (5000 milliseconds)
-        var _refresh = setInterval(refresh, 5000);
+        // set up an auto_refresher every 2.5 seconds (2500 milliseconds)
+        var _refresh = setInterval(refresh, 2500);
 
-	// get the name of the user from the url
+        // get the name of the user from the url
         var user_name = window.location.search.substring(window.location.search.indexOf("=") + 1);
         
-	// players playing (from Flask)
-	var players = {{ players | safe }};
+        // players playing (from Flask)
+        var players = {{ players | safe }};
 
         document.getElementById("name").innerHTML = "<h1>" + user_name + "</h1>";
     </script>
